@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "455653920407",
+    "firebase_url": "https://scheduler-app-1cb8a.firebaseio.com",
+    "project_id": "scheduler-app-1cb8a",
+    "storage_bucket": "scheduler-app-1cb8a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455653920407:android:1d3c30fc0666eccada63d2",
+        "android_client_info": {
+          "package_name": "com.lakshmimohan.application"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "455653920407-j6fknpgea6hu8iol3s2uabg1j92ivlv5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lakshmimohan.application",
+            "certificate_hash": "a8aacba5f44ec67c4cec1ab9b3d9a113cabba5ef"
+          }
+        },
+        {
+          "client_id": "455653920407-d8jaje27fjcb2t7f4cdqumi5jjpu5qkv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjlJO5PGZbaz08_uj9Q7zJKBxdKIXk0xQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "455653920407-d8jaje27fjcb2t7f4cdqumi5jjpu5qkv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
