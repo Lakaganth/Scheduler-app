@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:scheduler/app/home/driver/empty_content.dart';
+
 import 'package:scheduler/app/model/driver_model.dart';
-import 'package:scheduler/app/model/login_model.dart';
+
 import 'package:scheduler/app/model/schedule_model.dart';
-import 'package:scheduler/services/login_database.dart';
+
 import 'package:scheduler/services/schedule_database.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -56,7 +56,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
   void _todayLogin(DaySchedule schedule, var onlyTodayDate) async {
     final scheduleDatabase =
         Provider.of<ScheduleDatabase>(context, listen: false);
-    print(schedule.driverId);
+    print("Login time ${DateTime.now()} , The id to be changed ${schedule.id}");
     setState(() {
       currentLoginTime = DateTime.now();
       hasLoggedIn = true;
@@ -64,7 +64,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
     DaySchedule todayLogin = DaySchedule(
       id: schedule.id,
       driverId: schedule.driverId,
-      // driverName: schedule.driverName,
+      driverName: widget.driver.name,
       shiftDate: schedule.shiftDate,
       shiftHours: schedule.shiftHours,
       shiftType: schedule.shiftType,
@@ -73,7 +73,6 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
       lunchTime: null,
     );
     await scheduleDatabase.setNewSchedule(todayLogin);
-    print(currentLoginTime);
   }
 
   void _todayLunch(DaySchedule schedule, var onlyTodayDate) async {
@@ -82,13 +81,14 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
     DaySchedule todayLogin = DaySchedule(
       id: schedule.id,
       driverId: schedule.driverId,
-      // driverName: schedule.driverName,
+      driverName: widget.driver.name,
       shiftDate: schedule.shiftDate,
       shiftHours: schedule.shiftHours,
       shiftType: schedule.shiftType,
       weekNumber: schedule.weekNumber,
       loginTime: currentLoginTime,
       lunchTime: DateTime.now(),
+      eod: true,
     );
     await scheduleDatabase.setNewSchedule(todayLogin);
     setState(() {
@@ -103,7 +103,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
       if (data[date] == null) data[date] = [];
       data[date].add(event);
     });
-    print(data);
+    // print(data);
     return data;
   }
 
@@ -205,14 +205,17 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
 
   Widget _buildLoginButtonGroup(List<DaySchedule> items) {
     Widget buttonLogin;
+    List<DaySchedule> todaySchedule = items.where((e) {
+      var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
+      var onlyElementDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
+      return onlyTodayDate == onlyElementDate;
+    }).toList();
 
-    items.forEach(
+    todaySchedule.forEach(
       (element) {
         var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
-        var onlyStreamDate = DateFormat('d-MM-yyyy').format(_selectedDate);
-
-        buttonLogin = onlyTodayDate == onlyStreamDate
-            ? Center(
+        !element.eod
+            ? buttonLogin = Center(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -239,7 +242,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
                   ],
                 ),
               )
-            : Text('');
+            : buttonLogin = Text('');
       },
     );
 

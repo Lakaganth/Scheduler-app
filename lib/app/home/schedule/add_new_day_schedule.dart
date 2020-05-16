@@ -87,7 +87,7 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
     final DaySchedule schedule = DaySchedule(
         id: scheduleId(),
         driverId: widget.driver.id,
-        // driverName: widget.driver.name,
+        driverName: widget.driver.name,
         shiftDate: date,
         shiftType: shiftType.toString(),
         weekNumber: selectedDateWeekNumber,
