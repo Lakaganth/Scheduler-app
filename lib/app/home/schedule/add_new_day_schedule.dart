@@ -41,7 +41,7 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
   ShiftType shiftType;
   int shiftHours;
   Color unSelectedShift = Colors.orange;
-  var dateUtility = new DateUtil();
+  var dateUtility;
   int totalHoursStream;
   Map<DateTime, List<dynamic>> _events;
   List<dynamic> _selectedEvents;
@@ -55,11 +55,13 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
     selectedDateWeekNumber = weekNumber(date);
     _events = {};
     _selectedEvents = [];
+    dateUtility = new DateUtil();
   }
 
   @override
   void dispose() {
     _calendarController.dispose();
+
     super.dispose();
   }
 
@@ -83,8 +85,9 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
         Provider.of<ScheduleDatabase>(context, listen: false);
 
     final DaySchedule schedule = DaySchedule(
-        driverId: widget.driver.id,
         id: scheduleId(),
+        driverId: widget.driver.id,
+        // driverName: widget.driver.name,
         shiftDate: date,
         shiftType: shiftType.toString(),
         weekNumber: selectedDateWeekNumber,
@@ -167,7 +170,10 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
           selectedColor: Colors.purple,
           markersColor: Colors.white,
           todayStyle: TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 18.0, color: Colors.white),
+            fontWeight: FontWeight.bold,
+            fontSize: 18.0,
+            color: Colors.white,
+          ),
         ),
         onDaySelected: (day, events) {
           setState(() {
@@ -210,12 +216,10 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
       SizedBox(
         height: 32.0,
       ),
-      // _getHoursForTheWeek(),
       Text(
         "Hours for the week : $totalHoursStream",
         style: TextStyle(fontSize: 24.0),
       ),
-
       Text(
         "Hours for the week : ${60 - totalHoursStream} ",
         style: TextStyle(fontSize: 24.0),

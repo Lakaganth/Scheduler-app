@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:scheduler/app/sign_in/sign_in_page.dart';
 import 'package:scheduler/app/home/home_page.dart';
 import 'package:scheduler/services/auth.dart';
-import 'package:scheduler/services/driver_database.dart';
 
 class LandingPage extends StatelessWidget {
   @override

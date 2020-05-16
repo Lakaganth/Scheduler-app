@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scheduler/app/home/driver/add_driver.dart';
 import 'package:scheduler/app/home/driver/all_drivers.dart';
 
 import 'package:scheduler/services/auth.dart';

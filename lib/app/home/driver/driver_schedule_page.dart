@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scheduler/app/home/driver/empty_content.dart';
 import 'package:scheduler/app/model/driver_model.dart';
+import 'package:scheduler/app/model/login_model.dart';
 import 'package:scheduler/app/model/schedule_model.dart';
+import 'package:scheduler/services/login_database.dart';
 import 'package:scheduler/services/schedule_database.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -30,6 +33,11 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
   CalendarController _controller;
   Map<DateTime, List<dynamic>> _events;
   List<dynamic> _selectedEvents;
+  DateTime todayDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
+  bool hasLoggedIn = false;
+  bool finishedLunch = false;
+  DateTime currentLoginTime;
 
   @override
   void initState() {
@@ -45,6 +53,49 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
     super.dispose();
   }
 
+  void _todayLogin(DaySchedule schedule, var onlyTodayDate) async {
+    final scheduleDatabase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+    print(schedule.driverId);
+    setState(() {
+      currentLoginTime = DateTime.now();
+      hasLoggedIn = true;
+    });
+    DaySchedule todayLogin = DaySchedule(
+      id: schedule.id,
+      driverId: schedule.driverId,
+      // driverName: schedule.driverName,
+      shiftDate: schedule.shiftDate,
+      shiftHours: schedule.shiftHours,
+      shiftType: schedule.shiftType,
+      weekNumber: schedule.weekNumber,
+      loginTime: currentLoginTime,
+      lunchTime: null,
+    );
+    await scheduleDatabase.setNewSchedule(todayLogin);
+    print(currentLoginTime);
+  }
+
+  void _todayLunch(DaySchedule schedule, var onlyTodayDate) async {
+    final scheduleDatabase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+    DaySchedule todayLogin = DaySchedule(
+      id: schedule.id,
+      driverId: schedule.driverId,
+      // driverName: schedule.driverName,
+      shiftDate: schedule.shiftDate,
+      shiftHours: schedule.shiftHours,
+      shiftType: schedule.shiftType,
+      weekNumber: schedule.weekNumber,
+      loginTime: currentLoginTime,
+      lunchTime: DateTime.now(),
+    );
+    await scheduleDatabase.setNewSchedule(todayLogin);
+    setState(() {
+      finishedLunch = true;
+    });
+  }
+
   Map<DateTime, List<dynamic>> _groupEvents(List<DaySchedule> allEvents) {
     Map<DateTime, List<dynamic>> data = {};
     allEvents.forEach((event) {
@@ -52,6 +103,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
       if (data[date] == null) data[date] = [];
       data[date].add(event);
     });
+    print(data);
     return data;
   }
 
@@ -65,26 +117,44 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
         centerTitle: true,
       ),
       body: Container(
-        child: StreamBuilder(
-          stream: scheduleDatabe.scheduleStream(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return new Text("Error!, ${snapshot.error}");
-            } else if (snapshot.data == null) {
-              return new EmptyContent();
+        child: SingleChildScrollView(
+            child: StreamBuilder(
+          stream: scheduleDatabe.weeksHoursStream(widget.driver),
+          builder: (context, snapshots) {
+            if (snapshots.connectionState == ConnectionState.active) {
+              List<DaySchedule> items = snapshots.data;
+              if (snapshots.hasData) {
+                return _buildChildrenWithCalendar(items);
+              }
+              return Container(
+                child: Text("No Data"),
+              );
+            } else if (snapshots.connectionState == ConnectionState.waiting) {
+              return Container(
+                child: CircularProgressIndicator(),
+              );
             } else {
-              List<DaySchedule> items = snapshot.data;
-              return Container(child: _buildChildrenWithCalendar(items));
+              return Container(
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.warning),
+                    ),
+                    Text('Error in loadind data')
+                  ],
+                ),
+              );
             }
           },
-        ),
+        )),
       ),
     );
   }
 
   Widget _buildChildrenWithCalendar(List<DaySchedule> items) {
     _events = _groupEvents(items);
-    print(_selectedEvents);
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -95,7 +165,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
             calendarStyle: CalendarStyle(
               canEventMarkersOverflow: true,
               todayColor: Colors.orange,
-              selectedColor: Theme.of(context).primaryColor,
+              selectedColor: Colors.purple,
               markersColor: Colors.white,
               todayStyle: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -106,19 +176,73 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
             onDaySelected: (date, events) {
               setState(() {
                 _selectedEvents = events;
+                _selectedDate = date;
               });
             },
           ),
-          ..._selectedEvents.map(
-            (event) => ListTile(
-              title: Text(
-                "Hours: ${event.shiftHours.toString()}",
-                style: TextStyle(fontSize: 22.0),
-              ),
-            ),
+          SizedBox(
+            height: 32.0,
           ),
+          ..._selectedEvents.map((event) {
+            if (event.driverId == widget.driver.id) {
+              return ListTile(
+                title: Text(
+                  "Hours: ${event.shiftHours.toString()}",
+                  style: TextStyle(fontSize: 22.0),
+                ),
+              );
+            } else {
+              return ListTile(
+                title: Text(''),
+              );
+            }
+          }),
+          _buildLoginButtonGroup(items),
         ],
       ),
     );
+  }
+
+  Widget _buildLoginButtonGroup(List<DaySchedule> items) {
+    Widget buttonLogin;
+
+    items.forEach(
+      (element) {
+        var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
+        var onlyStreamDate = DateFormat('d-MM-yyyy').format(_selectedDate);
+
+        buttonLogin = onlyTodayDate == onlyStreamDate
+            ? Center(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: RaisedButton(
+                        onPressed: !hasLoggedIn
+                            ? () => _todayLogin(element, onlyTodayDate)
+                            : null,
+                        child: Text("Login"),
+                        color: Colors.indigo,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: RaisedButton(
+                        onPressed: hasLoggedIn && !finishedLunch
+                            ? () => _todayLunch(element, onlyTodayDate)
+                            : null,
+                        child: Text("Lunch"),
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Text('');
+      },
+    );
+
+    return buttonLogin;
   }
 }

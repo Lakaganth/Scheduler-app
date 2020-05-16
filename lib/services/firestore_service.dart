@@ -47,7 +47,7 @@ class FirestoreService {
     });
   }
 
-  // Stram of Document for Update
+  // Stream of Document for Update
 
   Stream<T> documentStream<T>({
     @required String path,

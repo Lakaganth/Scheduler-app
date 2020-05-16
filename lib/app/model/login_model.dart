@@ -1,9 +1,15 @@
 class DriverLoginModel {
   DriverLoginModel({
+    this.id,
+    this.driverId,
+    this.scheduleId,
     this.loginTime,
     this.lunchTime,
   });
 
+  String id;
+  String driverId;
+  String scheduleId;
   DateTime loginTime;
   DateTime lunchTime;
 
@@ -12,17 +18,39 @@ class DriverLoginModel {
     if (data == null) {
       return null;
     }
+    final String driverId = data['driverId'];
+    final String scheduleId = data['scheduleId'];
     final int loginTime = data['loginTime'];
     final int lunchTime = data['lunchTime'];
 
     return DriverLoginModel(
-        loginTime: DateTime.fromMillisecondsSinceEpoch(loginTime),
-        lunchTime: DateTime.fromMillisecondsSinceEpoch(lunchTime));
+      id: documentId,
+      driverId: driverId,
+      scheduleId: scheduleId,
+      loginTime: DateTime.fromMillisecondsSinceEpoch(loginTime),
+      lunchTime: DateTime.fromMillisecondsSinceEpoch(lunchTime),
+    );
   }
   Map<String, dynamic> toMap() {
-    return {
-      'loginTime': loginTime.millisecondsSinceEpoch,
-      'lunchTime': lunchTime.millisecondsSinceEpoch
-    };
+    if (loginTime != null) {
+      return {
+        'driverId': driverId,
+        'scheduleId': scheduleId,
+        'loginTime': loginTime.millisecondsSinceEpoch,
+      };
+    } else {
+      return {
+        'driverId': driverId,
+        'scheduleId': scheduleId,
+        'lunchTime': lunchTime.millisecondsSinceEpoch
+      };
+    }
+
+    // return {
+    //   'driverId': driverId,
+    //   'scheduleId': scheduleId,
+    //   'loginTime': loginTime.millisecondsSinceEpoch,
+    //   'lunchTime': lunchTime.millisecondsSinceEpoch
+    // };
   }
 }
