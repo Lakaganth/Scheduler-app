@@ -162,7 +162,7 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
       TableCalendar(
         calendarController: _calendarController,
         events: _events,
-        startingDayOfWeek: StartingDayOfWeek.sunday,
+        startingDayOfWeek: StartingDayOfWeek.monday,
         initialCalendarFormat: CalendarFormat.twoWeeks,
         calendarStyle: CalendarStyle(
           canEventMarkersOverflow: true,

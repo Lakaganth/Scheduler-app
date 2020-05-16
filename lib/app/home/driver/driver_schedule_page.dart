@@ -8,6 +8,8 @@ import 'package:scheduler/app/model/schedule_model.dart';
 
 import 'package:scheduler/services/schedule_database.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:timer_builder/timer_builder.dart';
+import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 
 class DriverSchedulePage extends StatefulWidget {
   DriverSchedulePage({@required this.driver});
@@ -164,9 +166,9 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
             initialCalendarFormat: CalendarFormat.twoWeeks,
             calendarStyle: CalendarStyle(
               canEventMarkersOverflow: true,
-              todayColor: Colors.orange,
+              // todayColor: Colors.orange,
               selectedColor: Colors.purple,
-              markersColor: Colors.white,
+              markersColor: Colors.lime,
               todayStyle: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18.0,
@@ -198,6 +200,7 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
             }
           }),
           _buildLoginButtonGroup(items),
+          _displaytimers(items),
         ],
       ),
     );
@@ -213,39 +216,88 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
 
     todaySchedule.forEach(
       (element) {
+        var onlyStreamDate = DateFormat('d-MM-yyyy').format(_selectedDate);
         var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
         !element.eod
-            ? buttonLogin = Center(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: RaisedButton(
-                        onPressed: !hasLoggedIn
-                            ? () => _todayLogin(element, onlyTodayDate)
-                            : null,
-                        child: Text("Login"),
-                        color: Colors.indigo,
-                      ),
+            ? buttonLogin = onlyTodayDate == onlyStreamDate
+                ? Center(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: RaisedButton(
+                            onPressed: !hasLoggedIn
+                                ? () => _todayLogin(element, onlyTodayDate)
+                                : null,
+                            child: Text("Login"),
+                            color: Colors.indigo,
+                          ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: RaisedButton(
-                        onPressed: hasLoggedIn && !finishedLunch
-                            ? () => _todayLunch(element, onlyTodayDate)
-                            : null,
-                        child: Text("Lunch"),
-                        color: Colors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-              )
+                  )
+                : Text('')
             : buttonLogin = Text('');
       },
     );
 
     return buttonLogin;
+  }
+
+  _displaytimers(List<DaySchedule> items) {
+    if (currentLoginTime != null) {
+      DateTime lunchStartTime =
+          currentLoginTime?.add(Duration(seconds: 10)) ?? null;
+
+      List<DaySchedule> todaySchedule = items.where((e) {
+        var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
+        var onlyElementDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
+        return onlyTodayDate == onlyElementDate;
+      }).toList();
+
+      return TimerBuilder.scheduled([currentLoginTime, lunchStartTime],
+          builder: (context) {
+        final now = DateTime.now();
+        final started = now.compareTo(currentLoginTime) >= 0;
+        final ended = now.compareTo(lunchStartTime) >= 0;
+        return started
+            ? ended ? _showLunchButton(todaySchedule) : _startTimer()
+            : Text("Not Started");
+      });
+    }
+    return Text('');
+  }
+
+  _startTimer() {
+    return Center(
+      child: CircularCountDownTimer(
+        width: MediaQuery.of(context).size.width / 3,
+        height: MediaQuery.of(context).size.height / 3,
+        duration: 10,
+        fillColor: Colors.red,
+        color: Colors.white,
+        strokeWidth: 5.0,
+      ),
+    );
+  }
+
+  _showLunchButton(List<DaySchedule> todaySchedule) {
+    Widget lunchButton;
+    var onlyTodayDate = DateFormat('d-MM-yyyy').format(todayDate);
+    todaySchedule.forEach((element) {
+      lunchButton = Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: RaisedButton(
+          onPressed: hasLoggedIn && !finishedLunch
+              ? () => _todayLunch(element, onlyTodayDate)
+              : null,
+          child: Text("Lunch"),
+          color: Colors.orange,
+        ),
+      );
+    });
+
+    return lunchButton;
   }
 }
