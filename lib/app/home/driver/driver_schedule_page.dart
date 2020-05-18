@@ -7,6 +7,7 @@ import 'package:scheduler/app/model/driver_model.dart';
 import 'package:scheduler/app/model/schedule_model.dart';
 
 import 'package:scheduler/services/schedule_database.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:timer_builder/timer_builder.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
@@ -262,14 +263,16 @@ class _DriverSchedulePageState extends State<DriverSchedulePage> {
         final started = now.compareTo(currentLoginTime) >= 0;
         final ended = now.compareTo(lunchStartTime) >= 0;
         return started
-            ? ended ? _showLunchButton(todaySchedule) : _startTimer()
+            ? ended
+                ? _showLunchButton(todaySchedule)
+                : _startTimer(lunchStartTime)
             : Text("Not Started");
       });
     }
     return Text('');
   }
 
-  _startTimer() {
+  _startTimer(lunchStartTime) {
     return Center(
       child: CircularCountDownTimer(
         width: MediaQuery.of(context).size.width / 3,

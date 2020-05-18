@@ -10,6 +10,7 @@ import 'package:scheduler/common/form_submit_button.dart';
 import 'package:scheduler/services/schedule_database.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class AddNewDaySchedule extends StatefulWidget {
   AddNewDaySchedule({@required this.driver});
@@ -182,32 +183,6 @@ class _AddNewDayScheduleState extends State<AddNewDaySchedule> {
             _selectedEvents = events;
           });
         },
-      ),
-      SizedBox(
-        height: 32.0,
-      ),
-      ..._selectedEvents.map(
-        (hours) => ListTile(
-          title: hours.shiftHours > 0
-              ? Text(
-                  "Hours for the selected day : ${hours.shiftHours}",
-                  style: TextStyle(fontSize: 18.0),
-                )
-              : Text(''),
-          trailing: IconButton(
-            icon: Icon(Icons.remove_circle),
-            onPressed: () async {
-              var onlyWidgetDate = DateFormat('d-MM-yyyy').format(date);
-              var onlyStreamDate =
-                  DateFormat('d-MM-yyyy').format(hours.shiftDate);
-
-              if (onlyWidgetDate == onlyStreamDate) {
-                await scheduleDatabase.deleteScheduleForDriver(
-                    scheduleId: hours.id);
-              }
-            },
-          ),
-        ),
       ),
       SizedBox(
         height: 32.0,
